@@ -1,7 +1,7 @@
 // Base type definitions
 export interface BaseEntity {
   id: number;
-  created_at: string;
+  createdAt: string;
 }
 
 export interface ApiResponse<T> {

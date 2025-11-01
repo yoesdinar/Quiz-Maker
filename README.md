@@ -58,7 +58,7 @@ src/
 Create a `.env` file in the root directory:
 
 ```
-VITE_API_BASE_URL=http://localhost:3001
+VITE_API_BASE_URL=http://localhost:4000
 ```
 
 ## Available Scripts
@@ -88,7 +88,7 @@ VITE_API_BASE_URL=http://localhost:3001
 
 ## Backend Integration
 
-This frontend connects to the Quiz Maker backend API. Make sure the backend is running on `http://localhost:3001` (or update the `VITE_API_BASE_URL` environment variable).
+This frontend connects to the Quiz Maker backend API. Make sure the backend is running on `http://localhost:4000` (or update the `VITE_API_BASE_URL` environment variable).
 
 ## Contributing
 

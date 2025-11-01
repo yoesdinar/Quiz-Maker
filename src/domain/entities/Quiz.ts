@@ -3,64 +3,85 @@ import { BaseEntity, QuestionType } from '@shared/types';
 export interface Quiz extends BaseEntity {
   title: string;
   description: string;
-  time_limit_seconds?: number;
-  is_published: boolean;
+  timeLimitSeconds?: number;
+  isPublished: boolean;
+  questions?: Question[]; // Included when fetching quiz details
 }
 
 export interface Question extends BaseEntity {
-  quiz_id: number;
+  quizId: number;
   type: QuestionType;
   prompt: string;
-  options_json?: string; // JSON array for MCQ options
-  correct_answer?: string;
+  options?: string[]; // Parsed array from backend (not JSON string)
+  correctAnswer?: string | number;
   position: number;
 }
 
 export interface Attempt extends BaseEntity {
-  quiz_id: number;
-  started_at: string;
-  submitted_at?: string;
+  quizId: number;
+  startedAt: string;
+  submittedAt?: string;
   score?: number;
+  answers?: AttemptAnswer[];
+  quiz?: QuizSnapshot; // Quiz snapshot from start attempt response
+}
+
+export interface QuizSnapshot {
+  id: number;
+  title: string;
+  description: string;
+  timeLimitSeconds?: number;
+  questions: Question[];
 }
 
 export interface AttemptAnswer {
-  attempt_id: number;
-  question_id: number;
+  attemptId: number;
+  questionId: number;
   value: string;
 }
 
 export interface AttemptEvent extends BaseEntity {
-  attempt_id: number;
+  attemptId: number;
   event: string;
   timestamp: string;
 }
 
-// DTOs for API requests
+// DTOs for API requests (match backend request format)
 export interface CreateQuizDto {
   title: string;
   description: string;
-  time_limit_seconds?: number;
+  timeLimitSeconds?: number;
 }
 
 export interface UpdateQuizDto extends Partial<CreateQuizDto> {
-  is_published?: boolean;
+  isPublished?: boolean;
 }
 
 export interface CreateQuestionDto {
   type: QuestionType;
   prompt: string;
-  options_json?: string;
-  correct_answer?: string;
+  options?: string[]; // Array of options for MCQ
+  correctAnswer?: string | number;
   position?: number;
 }
 
 export interface UpdateQuestionDto extends Partial<CreateQuestionDto> {}
 
 export interface StartAttemptDto {
-  quiz_id: number;
+  quizId: number;
 }
 
 export interface SubmitAnswerDto {
-  question_id: number;
+  questionId: number;
   value: string;
+}
+
+// Response types
+export interface SubmitAttemptResponse {
+  score: number;
+  details: Array<{
+    questionId: number;
+    correct: boolean;
+    expected?: string;
+  }>;
 }

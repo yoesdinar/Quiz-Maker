@@ -3,7 +3,8 @@ import {
   AttemptAnswer, 
   AttemptEvent, 
   StartAttemptDto, 
-  SubmitAnswerDto 
+  SubmitAnswerDto,
+  SubmitAttemptResponse
 } from '@domain/entities';
 
 export interface IAttemptRepository {
@@ -11,7 +12,7 @@ export interface IAttemptRepository {
   getAttempts(): Promise<Attempt[]>;
   getAttemptById(id: number): Promise<Attempt>;
   startAttempt(dto: StartAttemptDto): Promise<Attempt>;
-  submitAttempt(id: number): Promise<Attempt>;
+  submitAttempt(id: number): Promise<SubmitAttemptResponse>;
   
   // Answer operations
   getAttemptAnswers(attemptId: number): Promise<AttemptAnswer[]>;
