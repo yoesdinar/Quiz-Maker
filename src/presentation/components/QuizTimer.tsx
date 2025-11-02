@@ -5,11 +5,15 @@ import {
   selectTimeRemainingSeconds, 
   selectTimerActive, 
   selectHasTimeLimit,
+  selectCurrentQuiz,
   tickTimer,
   stopTimer,
-  completeQuizAttempt,
+  setQuizResult,
+  setCompleting,
+  setError,
   selectCurrentAttempt
 } from '@store/slices/quizAttemptSlice';
+import { useCompleteQuizAttempt } from '../../store/hooks/useQuizQueries';
 
 const TimerContainer = styled.div<{ $warning?: boolean; $critical?: boolean }>`
   display: flex;
@@ -52,6 +56,8 @@ export const QuizTimer: React.FC = () => {
   const timerActive = useAppSelector(selectTimerActive);
   const hasTimeLimit = useAppSelector(selectHasTimeLimit);
   const currentAttempt = useAppSelector(selectCurrentAttempt);
+  const currentQuiz = useAppSelector(selectCurrentQuiz);
+  const completeQuizMutation = useCompleteQuizAttempt();
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Start/stop timer based on timerActive state
@@ -78,9 +84,22 @@ export const QuizTimer: React.FC = () => {
   useEffect(() => {
     if (timeRemainingSeconds === 0 && currentAttempt) {
       dispatch(stopTimer());
-      dispatch(completeQuizAttempt({ attemptId: currentAttempt.id }));
+      dispatch(setCompleting(true));
+      
+      completeQuizMutation.mutate({ 
+        attemptId: currentAttempt.id, 
+        currentQuiz 
+      }, {
+        onSuccess: (data) => {
+          dispatch(setQuizResult(data));
+        },
+        onError: (error: any) => {
+          dispatch(setCompleting(false));
+          dispatch(setError(error?.message || 'Failed to complete quiz'));
+        }
+      });
     }
-  }, [timeRemainingSeconds, currentAttempt, dispatch]);
+  }, [timeRemainingSeconds, currentAttempt, currentQuiz, dispatch]);
 
   // Don't render if no time limit
   if (!hasTimeLimit || timeRemainingSeconds === null) {

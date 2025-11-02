@@ -1,70 +1,11 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { AttemptRepository } from '../../infrastructure/repositories/AttemptRepository';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import {
   QuizAttempt,
   AttemptResult,
   Quiz,
   Answer,
-  CreateAttemptRequest,
-  SubmitAnswerRequest,
-  CompleteAttemptRequest,
   AntiCheatEvent,
-  RecordEventRequest
 } from '../../shared/types/api';
-
-// Async thunks
-const attemptRepository = new AttemptRepository();
-
-export const startQuizAttempt = createAsyncThunk(
-  'quizAttempt/start',
-  async (request: CreateAttemptRequest) => {
-    // The backend returns both attempt and quiz data in one call
-    return await attemptRepository.createAttempt(request);
-  }
-);
-
-export const submitAnswer = createAsyncThunk(
-  'quizAttempt/submitAnswer',
-  async (request: SubmitAnswerRequest) => {
-    await attemptRepository.submitAnswer(request);
-    return request;
-  }
-);
-
-export const completeQuizAttempt = createAsyncThunk(
-  'quizAttempt/complete',
-  async (request: CompleteAttemptRequest, { getState }) => {
-    const state = getState() as { quizAttempt: QuizAttemptState };
-    const result = await attemptRepository.completeAttempt(request);
-    
-    // Enhance the result with current quiz data for better display
-    if (state.quizAttempt.currentQuiz) {
-      result.quiz = {
-        ...result.quiz,
-        id: state.quizAttempt.currentQuiz.id,
-        title: state.quizAttempt.currentQuiz.title,
-        description: state.quizAttempt.currentQuiz.description,
-        questions: state.quizAttempt.currentQuiz.questions || []
-      };
-    }
-    
-    return result;
-  }
-);
-
-export const loadQuizForTaking = createAsyncThunk(
-  'quizAttempt/loadQuiz',
-  async (quizId: number) => {
-    return await attemptRepository.getQuizForAttempt(quizId);
-  }
-);
-
-export const recordAntiCheatEvent = createAsyncThunk(
-  'quizAttempt/recordEvent',
-  async (request: RecordEventRequest) => {
-    return await attemptRepository.recordEvent(request);
-  }
-);
 
 // State interface
 interface QuizAttemptState {
@@ -193,98 +134,67 @@ const quizAttemptSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
-  },
-  extraReducers: (builder) => {
-    builder
-      // Load quiz for taking
-      .addCase(loadQuizForTaking.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-        state.phase = 'loading';
-      })
-      .addCase(loadQuizForTaking.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.currentQuiz = action.payload;
-        state.phase = 'taking';
-      })
-      .addCase(loadQuizForTaking.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.error.message || 'Failed to load quiz';
-        state.phase = 'error';
-      })
+
+    // Actions to handle TanStack Query results
+    setCurrentQuiz: (state, action: PayloadAction<Quiz>) => {
+      state.currentQuiz = action.payload;
+      state.phase = 'taking';
+      state.isLoading = false;
+      state.error = null;
+    },
+
+    setQuizAttempt: (state, action: PayloadAction<{ attempt: QuizAttempt; quiz: Quiz }>) => {
+      state.currentAttempt = action.payload.attempt;
+      state.currentQuiz = action.payload.quiz;
+      state.phase = 'taking';
+      state.currentQuestionIndex = 0;
+      state.answers = {};
+      state.isLoading = false;
+      state.error = null;
       
-      // Start attempt
-      .addCase(startQuizAttempt.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(startQuizAttempt.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.currentAttempt = action.payload.attempt;
-        state.currentQuiz = action.payload.quiz;
-        state.phase = 'taking';
-        state.currentQuestionIndex = 0;
-        state.answers = {};
-        
-        // Start timer if quiz has time limit
-        if (action.payload.quiz.timeLimitSeconds) {
-          state.timeRemainingSeconds = action.payload.quiz.timeLimitSeconds;
-          state.timerActive = true;
-        } else {
-          state.timeRemainingSeconds = null;
-          state.timerActive = false;
-        }
-      })
-      .addCase(startQuizAttempt.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.error.message || 'Failed to start quiz attempt';
-        state.phase = 'error';
-        // Stop timer on error
-        state.timerActive = false;
+      // Start timer if quiz has time limit
+      if (action.payload.quiz.timeLimitSeconds) {
+        state.timeRemainingSeconds = action.payload.quiz.timeLimitSeconds;
+        state.timerActive = true;
+      } else {
         state.timeRemainingSeconds = null;
-      })
-      
-      // Submit answer
-      .addCase(submitAnswer.pending, (state) => {
-        state.isSubmitting = true;
-        state.error = null;
-      })
-      .addCase(submitAnswer.fulfilled, (state) => {
-        state.isSubmitting = false;
-      })
-      .addCase(submitAnswer.rejected, (state, action) => {
-        state.isSubmitting = false;
-        state.error = action.error.message || 'Failed to submit answer';
-      })
-      
-      // Complete attempt
-      .addCase(completeQuizAttempt.pending, (state) => {
-        state.isCompleting = true;
-        state.error = null;
-      })
-      .addCase(completeQuizAttempt.fulfilled, (state, action) => {
-        state.isCompleting = false;
-        state.result = action.payload;
-        state.phase = 'completed';
-        // Stop timer when quiz is completed
         state.timerActive = false;
-      })
-      .addCase(completeQuizAttempt.rejected, (state, action) => {
-        state.isCompleting = false;
-        state.error = action.error.message || 'Failed to complete quiz';
-        // Stop timer on error
+      }
+    },
+
+    setQuizResult: (state, action: PayloadAction<AttemptResult>) => {
+      state.result = action.payload;
+      state.phase = 'completed';
+      state.isCompleting = false;
+      state.timerActive = false;
+    },
+
+    setLoading: (state, action: PayloadAction<boolean>) => {
+      state.isLoading = action.payload;
+    },
+
+    setSubmitting: (state, action: PayloadAction<boolean>) => {
+      state.isSubmitting = action.payload;
+    },
+
+    setCompleting: (state, action: PayloadAction<boolean>) => {
+      state.isCompleting = action.payload;
+    },
+
+    setError: (state, action: PayloadAction<string | null>) => {
+      state.error = action.payload;
+      state.isLoading = false;
+      state.isSubmitting = false;
+      state.isCompleting = false;
+      if (action.payload) {
+        state.phase = 'error';
         state.timerActive = false;
-      })
-      
-      // Record anti-cheat event
-      .addCase(recordAntiCheatEvent.fulfilled, (_state, _action) => {
-        // Event successfully recorded to backend
-        // The local state is already updated via addAntiCheatEvent action
-      })
-      .addCase(recordAntiCheatEvent.rejected, (_state, action) => {
-        // Failed to record to backend, but keep local tracking
-        console.warn('Failed to record anti-cheat event to backend:', action.error.message);
-      });
+      }
+    },
+
+    setPhase: (state, action: PayloadAction<'loading' | 'taking' | 'completed' | 'error'>) => {
+      state.phase = action.payload;
+    },
   },
 });
 
@@ -300,6 +210,14 @@ export const {
   addAntiCheatEvent,
   resetAttempt,
   clearError,
+  setCurrentQuiz,
+  setQuizAttempt,
+  setQuizResult,
+  setLoading,
+  setSubmitting,
+  setCompleting,
+  setError,
+  setPhase,
 } = quizAttemptSlice.actions;
 
 export default quizAttemptSlice.reducer;

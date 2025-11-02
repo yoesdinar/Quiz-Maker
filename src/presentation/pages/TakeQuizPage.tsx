@@ -5,14 +5,18 @@ import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { QuizTimer, AntiCheatSummary, QuestionResultsReview } from '../components';
 import { useAntiCheatTracking } from '../hooks';
 import {
-  startQuizAttempt,
-  submitAnswer,
-  completeQuizAttempt,
   goToNextQuestion,
   goToPreviousQuestion,
   goToQuestion,
   setAnswer,
   resetAttempt,
+
+  setQuizAttempt,
+  setQuizResult,
+  setLoading,
+  setSubmitting,
+  setCompleting,
+  setError,
   selectCurrentQuiz,
   selectCurrentAttempt,
   selectCurrentQuestion,
@@ -31,6 +35,11 @@ import {
   selectHasTimeLimit,
   selectAntiCheatSummary,
 } from '../../store/slices/quizAttemptSlice';
+import {
+  useStartQuizAttempt,
+  useSubmitAnswer,
+  useCompleteQuizAttempt,
+} from '../../store/hooks/useQuizQueries';
 import { Answer } from '../../shared/types/api';
 
 const Container = styled.div`
@@ -389,6 +398,11 @@ export const TakeQuizPage: React.FC = () => {
   // Anti-cheat tracking
   const { trackPasteEvent } = useAntiCheatTracking();
 
+  // TanStack Query hooks
+  const startQuizMutation = useStartQuizAttempt();
+  const submitAnswerMutation = useSubmitAnswer();
+  const completeQuizMutation = useCompleteQuizAttempt();
+
   // Local state
   const [currentAnswer, setCurrentAnswer] = useState<string>('');
 
@@ -400,7 +414,16 @@ export const TakeQuizPage: React.FC = () => {
     if (quizId && !isNaN(Number(quizId))) {
       console.log('Starting quiz attempt for quizId:', quizId);
       dispatch(resetAttempt());
-      dispatch(startQuizAttempt({ quizId: Number(quizId) }));
+      dispatch(setLoading(true));
+      
+      startQuizMutation.mutate({ quizId: Number(quizId) }, {
+        onSuccess: (data) => {
+          dispatch(setQuizAttempt(data));
+        },
+        onError: (error: any) => {
+          dispatch(setError(error?.message || 'Failed to start quiz attempt'));
+        }
+      });
     } else {
       navigate('/');
     }
@@ -448,11 +471,20 @@ export const TakeQuizPage: React.FC = () => {
       dispatch(setAnswer({ questionId: currentQuestion.id, answer: answerObj }));
       
       // Auto-submit answer to backend
-      dispatch(submitAnswer({
+      dispatch(setSubmitting(true));
+      submitAnswerMutation.mutate({
         attemptId: currentAttempt.id,
         questionId: currentQuestion.id,
         answerValue: answer,
-      }));
+      }, {
+        onSuccess: () => {
+          dispatch(setSubmitting(false));
+        },
+        onError: (error: any) => {
+          dispatch(setSubmitting(false));
+          dispatch(setError(error?.message || 'Failed to submit answer'));
+        }
+      });
     }
   };
 
@@ -476,7 +508,19 @@ export const TakeQuizPage: React.FC = () => {
   // Complete quiz
   const handleCompleteQuiz = () => {
     if (currentAttempt && currentAttempt.id && canComplete) {
-      dispatch(completeQuizAttempt({ attemptId: currentAttempt.id }));
+      dispatch(setCompleting(true));
+      completeQuizMutation.mutate({ 
+        attemptId: currentAttempt.id, 
+        currentQuiz 
+      }, {
+        onSuccess: (data) => {
+          dispatch(setQuizResult(data));
+        },
+        onError: (error: any) => {
+          dispatch(setCompleting(false));
+          dispatch(setError(error?.message || 'Failed to complete quiz'));
+        }
+      });
     }
   };
 
@@ -484,7 +528,15 @@ export const TakeQuizPage: React.FC = () => {
   const handleRestartQuiz = () => {
     if (quizId) {
       dispatch(resetAttempt());
-      dispatch(startQuizAttempt({ quizId: Number(quizId) }));
+      dispatch(setLoading(true));
+      startQuizMutation.mutate({ quizId: Number(quizId) }, {
+        onSuccess: (data) => {
+          dispatch(setQuizAttempt(data));
+        },
+        onError: (error: any) => {
+          dispatch(setError(error?.message || 'Failed to start quiz attempt'));
+        }
+      });
     }
   };
 

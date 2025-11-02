@@ -1,25 +1,41 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { useAppDispatch, useAppSelector } from '@store/hooks';
 import {
-  recordAntiCheatEvent,
   addAntiCheatEvent,
   selectCurrentAttempt,
   selectPhase
 } from '@store/slices/quizAttemptSlice';
+import { useRecordAntiCheatEvent } from '../../store/hooks/useQuizQueries';
 import { AntiCheatEventType } from '@shared/types/api';
 
 export const useAntiCheatTracking = () => {
   const dispatch = useAppDispatch();
   const currentAttempt = useAppSelector(selectCurrentAttempt);
   const phase = useAppSelector(selectPhase);
+  const recordEventMutation = useRecordAntiCheatEvent();
+  
+  // Use refs to avoid stale closures and dependency issues
+  const currentAttemptRef = useRef(currentAttempt);
+  const phaseRef = useRef(phase);
+  const mutationRef = useRef(recordEventMutation);
+  
+  // Update refs when values change
+  useEffect(() => {
+    currentAttemptRef.current = currentAttempt;
+    phaseRef.current = phase;
+    mutationRef.current = recordEventMutation;
+  });
 
   // Helper to record an event both locally and to backend
   const recordEvent = useCallback((eventType: AntiCheatEventType, metadata?: Record<string, any>) => {
-    if (!currentAttempt || phase !== 'taking') return;
+    const attempt = currentAttemptRef.current;
+    const currentPhase = phaseRef.current;
+    
+    if (!attempt || currentPhase !== 'taking') return;
 
     const timestamp = new Date().toISOString();
     const event = {
-      attemptId: currentAttempt.id,
+      attemptId: attempt.id,
       eventType,
       timestamp,
       metadata,
@@ -29,13 +45,13 @@ export const useAntiCheatTracking = () => {
     dispatch(addAntiCheatEvent(event));
 
     // Send to backend asynchronously
-    dispatch(recordAntiCheatEvent({
-      attemptId: currentAttempt.id,
+    mutationRef.current.mutate({
+      attemptId: attempt.id,
       event: eventType,
       timestamp,
       metadata,
-    }));
-  }, [currentAttempt, phase, dispatch]);
+    });
+  }, [dispatch]);
 
   // Track focus events (tab/window blur and focus)
   useEffect(() => {
