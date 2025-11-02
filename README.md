@@ -13,7 +13,7 @@ A comprehensive React-based quiz platform featuring real-time anti-cheat monitor
 
 1. **Clone and navigate to the project:**
    ```bash
-   git clone <repository-url>
+   git clone git@github.com:yoesdinar/Quiz-Maker.git
    cd quiz-maker-frontend
    ```
 
