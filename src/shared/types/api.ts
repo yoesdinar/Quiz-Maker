@@ -20,7 +20,7 @@ export interface PaginatedResponse<T> {
   };
 }
 
-export type QuestionType = 'mcq' | 'short' | 'code';
+export type QuestionType = 'mcq' | 'short';
 
 export interface ApiError {
   message: string;

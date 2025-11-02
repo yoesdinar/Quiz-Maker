@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
 const Container = styled.div`
@@ -43,6 +44,8 @@ const Button = styled.button`
 `;
 
 export const HomePage: React.FC = () => {
+  const navigate = useNavigate();
+
   return (
     <Container>
       <Title>Welcome to Quiz Maker</Title>
@@ -50,8 +53,8 @@ export const HomePage: React.FC = () => {
         Create, manage, and take quizzes with our simple quiz maker platform.
       </Description>
       <ButtonContainer>
-        <Button>View Quizzes</Button>
-        <Button>Create Quiz</Button>
+        <Button onClick={() => navigate('/quizzes')}>View Quizzes</Button>
+        <Button onClick={() => navigate('/quiz-builder')}>Create Quiz</Button>
       </ButtonContainer>
     </Container>
   );

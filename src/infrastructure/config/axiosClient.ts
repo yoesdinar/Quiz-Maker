@@ -1,5 +1,6 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import environment from './environment';
+import { tokenManager } from './TokenManager';
 
 class AxiosClient {
   private instance: AxiosInstance;
@@ -10,6 +11,7 @@ class AxiosClient {
       timeout: 10000,
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': tokenManager.getAuthHeader(),
       },
     });
 
@@ -20,8 +22,14 @@ class AxiosClient {
     // Request interceptor
     this.instance.interceptors.request.use(
       (config) => {
+        // Ensure bearer token is always present
+        if (!config.headers.Authorization && tokenManager.hasToken()) {
+          config.headers.Authorization = tokenManager.getAuthHeader();
+        }
+        
         if (environment.IS_DEVELOPMENT) {
           console.log('🚀 Request:', config.method?.toUpperCase(), config.url);
+          console.log('🔑 Auth:', config.headers.Authorization);
         }
         return config;
       },

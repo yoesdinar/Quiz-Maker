@@ -4,7 +4,7 @@ import { Provider } from 'react-redux';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { ThemeProvider } from 'styled-components';
-import { store } from '@store';
+import { store } from '../store';
 import { theme } from './theme';
 import { AppRoutes } from './routes';
 import { GlobalStyles } from './GlobalStyles';

@@ -6,7 +6,6 @@ import {
   CreateQuestionDto, 
   UpdateQuestionDto 
 } from '@domain/entities';
-import { ApiResponse, PaginatedResponse } from '@shared/types';
 
 export interface IQuizRepository {
   // Quiz operations

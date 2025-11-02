@@ -1,8 +1,9 @@
 import { configureStore } from '@reduxjs/toolkit';
+import quizBuilderReducer from './slices/quizBuilderSlice';
 
 export const store = configureStore({
   reducer: {
-    // Add your slices here
+    quizBuilder: quizBuilderReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
