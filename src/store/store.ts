@@ -1,9 +1,11 @@
 import { configureStore } from '@reduxjs/toolkit';
 import quizBuilderReducer from './slices/quizBuilderSlice';
+import quizAttemptReducer from './slices/quizAttemptSlice';
 
 export const store = configureStore({
   reducer: {
     quizBuilder: quizBuilderReducer,
+    quizAttempt: quizAttemptReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

@@ -3,15 +3,22 @@ import { DefaultTheme } from 'styled-components';
 export const theme: DefaultTheme = {
   colors: {
     primary: '#007bff',
+    primaryLight: '#66b3ff',
+    primaryDark: '#0056b3',
     secondary: '#6c757d',
+    secondaryDark: '#545b62',
     background: '#ffffff',
+    backgroundLight: '#f8f9fa',
     surface: '#f8f9fa',
     text: '#212529',
     textSecondary: '#6c757d',
     border: '#dee2e6',
     error: '#dc3545',
+    errorBg: '#f8d7da',
+    errorDark: '#bd2130',
     warning: '#ffc107',
     success: '#28a745',
+    successDark: '#1e7e34',
   },
   spacing: {
     xs: '0.25rem',

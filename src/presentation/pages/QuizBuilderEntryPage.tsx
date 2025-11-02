@@ -8,7 +8,7 @@ const Container = styled.div`
   align-items: center;
   justify-content: center;
   min-height: 60vh;
-  max-width: 600px;
+  max-width: 800px;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
@@ -21,12 +21,10 @@ const Title = styled.h1`
   margin-bottom: 1rem;
 `;
 
-
-
-const Features = styled.div`
+const MainActions = styled.div`
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
+  gap: 2rem;
   margin-bottom: 3rem;
   width: 100%;
   
@@ -35,87 +33,131 @@ const Features = styled.div`
   }
 `;
 
-const FeatureCard = styled.div`
-  padding: 1.5rem;
-  border: 1px solid ${({ theme }) => theme?.colors?.border || '#e2e8f0'};
-  border-radius: 8px;
+const ActionCard = styled.div`
+  padding: 2rem;
+  border: 2px solid ${({ theme }) => theme?.colors?.border || '#e2e8f0'};
+  border-radius: 12px;
   background: white;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  cursor: pointer;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    border-color: ${({ theme }) => theme?.colors?.primary || '#2563eb'};
+  }
 `;
 
-const FeatureIcon = styled.div`
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
+const ActionIcon = styled.div`
+  font-size: 3rem;
+  margin-bottom: 1rem;
 `;
 
-const FeatureTitle = styled.h3`
-  font-size: 1rem;
+const ActionTitle = styled.h2`
+  font-size: 1.5rem;
   font-weight: 600;
   color: ${({ theme }) => theme?.colors?.text || '#1e293b'};
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
 `;
 
-const FeatureDescription = styled.p`
-  font-size: 0.875rem;
+const ActionDescription = styled.p`
+  font-size: 1rem;
   color: ${({ theme }) => theme?.colors?.textSecondary || '#64748b'};
   line-height: 1.5;
+  margin-bottom: 1.5rem;
 `;
 
-const StartButton = styled.button`
+const ActionButton = styled.button`
   background: ${({ theme }) => theme?.colors?.primary || '#2563eb'};
   color: white;
   border: none;
-  padding: 1rem 2rem;
-  font-size: 1.125rem;
-  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 500;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s;
+  width: 100%;
   
   &:hover {
     background: ${({ theme }) => theme?.colors?.primary || '#1d4ed8'};
     opacity: 0.9;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
   }
+`;
+
+const QuizIdInput = styled.input`
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid ${({ theme }) => theme?.colors?.border || '#e2e8f0'};
+  border-radius: 8px;
+  font-size: 1rem;
+  margin-bottom: 1rem;
   
-  &:active {
-    transform: translateY(0);
+  &:focus {
+    outline: none;
+    border-color: ${({ theme }) => theme?.colors?.primary || '#2563eb'};
   }
 `;
 
 export const QuizBuilderEntryPage: React.FC = () => {
   const navigate = useNavigate();
+  const [quizId, setQuizId] = React.useState('');
 
   const handleStartBuilding = () => {
     navigate('/quiz-builder/details');
   };
 
+  const handleTakeQuiz = () => {
+    if (quizId && !isNaN(Number(quizId))) {
+      navigate(`/take-quiz/${quizId}`);
+    }
+  };
+
   return (
     <Container>
-      <Title>Create a New Quiz</Title>
+      <Title>Quiz Platform</Title>
 
-      <Features>
-        <FeatureCard>
-          <FeatureIcon>☑️</FeatureIcon>
-          <FeatureTitle>Multiple Choice</FeatureTitle>
-          <FeatureDescription>
-            Create questions with multiple options
-          </FeatureDescription>
-        </FeatureCard>
+      <MainActions>
+        <ActionCard onClick={handleStartBuilding}>
+          <ActionIcon>🎯</ActionIcon>
+          <ActionTitle>Create Quiz</ActionTitle>
+          <ActionDescription>
+            Build a new quiz with multiple choice and short answer questions. 
+            Perfect for educators, trainers, and anyone who wants to create engaging assessments.
+          </ActionDescription>
+          <ActionButton onClick={handleStartBuilding}>
+            Start Building
+          </ActionButton>
+        </ActionCard>
 
-        <FeatureCard>
-          <FeatureIcon>✏️</FeatureIcon>
-          <FeatureTitle>Short Answer</FeatureTitle>
-          <FeatureDescription>
-            Text-based questions with expected answer matching
-          </FeatureDescription>
-        </FeatureCard>
-      </Features>
+        <ActionCard>
+          <ActionIcon>🚀</ActionIcon>
+          <ActionTitle>Take Quiz</ActionTitle>
+          <ActionDescription>
+            Enter a quiz ID to take an existing quiz. Answer questions, navigate between them, 
+            and see your results with detailed feedback.
+          </ActionDescription>
+          <QuizIdInput
+            type="text"
+            placeholder="Enter Quiz ID (e.g. 123)"
+            value={quizId}
+            onChange={(e) => setQuizId(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleTakeQuiz()}
+          />
+          <ActionButton 
+            onClick={handleTakeQuiz}
+            disabled={!quizId || isNaN(Number(quizId))}
+            style={{ 
+              opacity: (!quizId || isNaN(Number(quizId))) ? 0.6 : 1,
+              cursor: (!quizId || isNaN(Number(quizId))) ? 'not-allowed' : 'pointer'
+            }}
+          >
+            Take Quiz
+          </ActionButton>
+        </ActionCard>
+      </MainActions>
 
-      <StartButton onClick={handleStartBuilding}>
-        Start Building Your Quiz
-      </StartButton>
     </Container>
   );
 };

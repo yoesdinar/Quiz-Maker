@@ -53,8 +53,7 @@ export const HomePage: React.FC = () => {
         Create, manage, and take quizzes with our simple quiz maker platform.
       </Description>
       <ButtonContainer>
-        <Button onClick={() => navigate('/quizzes')}>View Quizzes</Button>
-        <Button onClick={() => navigate('/quiz-builder')}>Create Quiz</Button>
+        <Button onClick={() => navigate('/quiz-builder')}>Get Started</Button>
       </ButtonContainer>
     </Container>
   );

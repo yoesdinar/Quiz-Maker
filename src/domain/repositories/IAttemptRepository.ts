@@ -1,24 +1,22 @@
 import { 
-  Attempt, 
-  AttemptAnswer, 
-  AttemptEvent, 
-  StartAttemptDto, 
-  SubmitAnswerDto,
-  SubmitAttemptResponse
-} from '@domain/entities';
+  QuizAttempt,
+  AttemptResult,
+  Quiz,
+  CreateAttemptRequest,
+  SubmitAnswerRequest,
+  CompleteAttemptRequest
+} from '../../shared/types/api';
 
 export interface IAttemptRepository {
   // Attempt operations
-  getAttempts(): Promise<Attempt[]>;
-  getAttemptById(id: number): Promise<Attempt>;
-  startAttempt(dto: StartAttemptDto): Promise<Attempt>;
-  submitAttempt(id: number): Promise<SubmitAttemptResponse>;
+  createAttempt(request: CreateAttemptRequest): Promise<{ attempt: QuizAttempt, quiz: Quiz }>;
+  getAttempt(attemptId: number): Promise<QuizAttempt>;
+  completeAttempt(request: CompleteAttemptRequest): Promise<AttemptResult>;
+  getAttemptResult(attemptId: number): Promise<AttemptResult>;
   
   // Answer operations
-  getAttemptAnswers(attemptId: number): Promise<AttemptAnswer[]>;
-  submitAnswer(attemptId: number, answer: SubmitAnswerDto): Promise<void>;
+  submitAnswer(request: SubmitAnswerRequest): Promise<void>;
   
-  // Event operations
-  getAttemptEvents(attemptId: number): Promise<AttemptEvent[]>;
-  logEvent(attemptId: number, event: string): Promise<void>;
+  // Quiz operations for attempts
+  getQuizForAttempt(quizId: number): Promise<Quiz>;
 }

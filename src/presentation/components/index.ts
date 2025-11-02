@@ -1,2 +1,1 @@
-// Placeholder for component exports
-export {};
+export { default as QuizTimer } from './QuizTimer';

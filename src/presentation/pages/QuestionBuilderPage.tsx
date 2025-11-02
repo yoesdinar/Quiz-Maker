@@ -585,7 +585,7 @@ export const QuestionBuilderPage: React.FC = () => {
           <ActionBar>
             <ActionGroup>
               <Button onClick={handleGoToQuizList}>
-                View All Quizzes
+                Back To Home
               </Button>
             </ActionGroup>
             <ActionGroup>
