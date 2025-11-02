@@ -412,7 +412,6 @@ export const TakeQuizPage: React.FC = () => {
   // Initialize quiz attempt
   useEffect(() => {
     if (quizId && !isNaN(Number(quizId))) {
-      console.log('Starting quiz attempt for quizId:', quizId);
       dispatch(resetAttempt());
       dispatch(setLoading(true));
       
@@ -428,18 +427,6 @@ export const TakeQuizPage: React.FC = () => {
       navigate('/');
     }
   }, [dispatch, navigate, quizId]);
-
-  // Debug logging
-  useEffect(() => {
-    console.log('Quiz Attempt Debug:', {
-      phase,
-      isLoading,
-      currentQuiz: currentQuiz ? { id: currentQuiz.id, title: currentQuiz.title, questionsCount: currentQuiz.questions?.length } : null,
-      currentAttempt: currentAttempt ? { id: currentAttempt.id, quizId: currentAttempt.quizId } : null,
-      currentQuestion: currentQuestion ? { id: currentQuestion.id, prompt: currentQuestion.prompt } : null,
-      error
-    });
-  }, [phase, isLoading, currentQuiz, currentAttempt, currentQuestion, error]);
 
   // Update local answer when question changes
   useEffect(() => {

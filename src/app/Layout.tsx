@@ -1,5 +1,5 @@
 import React from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
 const LayoutContainer = styled.div`
@@ -18,6 +18,12 @@ const Header = styled.header`
 const Title = styled.h1`
   margin: 0;
   font-size: 1.5rem;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    opacity: 0.8;
+  }
 `;
 
 const Main = styled.main`
@@ -27,10 +33,16 @@ const Main = styled.main`
 `;
 
 export const Layout: React.FC = () => {
+  const navigate = useNavigate();
+
+  const handleTitleClick = () => {
+    navigate('/');
+  };
+
   return (
     <LayoutContainer>
       <Header>
-        <Title>Quiz Maker</Title>
+        <Title onClick={handleTitleClick}>Quiz Maker</Title>
       </Header>
       <Main>
         <Outlet />

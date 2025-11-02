@@ -22,9 +22,7 @@ export class AttemptRepository implements IAttemptRepository {
       const data: any = await axiosClient.post('/attempts', { 
         quizId: String(request.quizId) 
       });
-      
-      console.log('API Response data:', data);
-      
+
       // Validate response structure
       if (!data) {
         throw new Error('No data received from API');
@@ -94,9 +92,7 @@ export class AttemptRepository implements IAttemptRepository {
   async completeAttempt(request: CompleteAttemptRequest): Promise<AttemptResult> {
     // Backend expects POST /attempts/:id/submit
     const data: any = await axiosClient.post(`/attempts/${request.attemptId}/submit`);
-    
-    console.log('Submit API response:', data);
-    
+
     // The API returns an array like: [{questionId: 13, correct: false, expected: 'ya'}]
     // We need to handle both array and object formats for robustness
     const details = Array.isArray(data) ? data : (data.details || []);
