@@ -25,7 +25,9 @@ A comprehensive React-based quiz platform featuring real-time anti-cheat monitor
 3. **Set up environment variables:**
    ```bash
    # Create .env file in the root directory
-   echo "VITE_API_BASE_URL=http://localhost:4000" > .env
+   # insert these 2 lines: 
+      VITE_API_BASE_URL=http://localhost:4000
+      VITE_API_TOKEN=dev-token
    ```
 
 4. **Start the backend server** (in a separate terminal):
