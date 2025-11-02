@@ -95,23 +95,29 @@ export class AttemptRepository implements IAttemptRepository {
     // Backend expects POST /attempts/:id/submit
     const data: any = await axiosClient.post(`/attempts/${request.attemptId}/submit`);
     
+    console.log('Submit API response:', data);
+    
+    // The API returns an array like: [{questionId: 13, correct: false, expected: 'ya'}]
+    // We need to handle both array and object formats for robustness
+    const details = Array.isArray(data) ? data : (data.details || []);
+    
     // Convert backend response to our AttemptResult format
     return {
       attempt: {
         id: request.attemptId,
         quizId: 0, // We don't have this from the submit response
-        score: data.score,
-        totalQuestions: data.details.length,
+        score: Array.isArray(data) ? details.filter((d: any) => d.correct).length : (data.score || 0),
+        totalQuestions: details.length,
         status: 'completed',
         timeStarted: '',
         timeCompleted: new Date().toISOString(),
         createdAt: new Date().toISOString(),
       },
-      answers: data.details.map((detail: any, index: number) => ({
+      answers: details.map((detail: any, index: number) => ({
         id: index,
         attemptId: request.attemptId,
         questionId: detail.questionId,
-        answer: detail.expected || '',
+        answer: detail.expected || '', // Store the correct answer in the answer field
         isCorrect: detail.correct,
         createdAt: new Date().toISOString(),
       })),
@@ -119,14 +125,14 @@ export class AttemptRepository implements IAttemptRepository {
         id: 0,
         title: 'Quiz',
         description: '',
-        totalQuestions: data.details.length,
-        questions: [],
+        totalQuestions: details.length,
+        questions: [], // We'll need to get this from Redux state in the component
       },
       summary: {
-        totalQuestions: data.details.length,
-        correctAnswers: data.details.filter((d: any) => d.correct).length,
-        score: data.score,
-        percentage: Math.round((data.score / data.details.length) * 100),
+        totalQuestions: details.length,
+        correctAnswers: details.filter((d: any) => d.correct).length,
+        score: Array.isArray(data) ? details.filter((d: any) => d.correct).length : (data.score || 0),
+        percentage: details.length > 0 ? Math.round((details.filter((d: any) => d.correct).length / details.length) * 100) : 0,
       },
     };
   }

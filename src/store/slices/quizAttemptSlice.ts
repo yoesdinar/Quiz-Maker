@@ -33,8 +33,22 @@ export const submitAnswer = createAsyncThunk(
 
 export const completeQuizAttempt = createAsyncThunk(
   'quizAttempt/complete',
-  async (request: CompleteAttemptRequest) => {
-    return await attemptRepository.completeAttempt(request);
+  async (request: CompleteAttemptRequest, { getState }) => {
+    const state = getState() as { quizAttempt: QuizAttemptState };
+    const result = await attemptRepository.completeAttempt(request);
+    
+    // Enhance the result with current quiz data for better display
+    if (state.quizAttempt.currentQuiz) {
+      result.quiz = {
+        ...result.quiz,
+        id: state.quizAttempt.currentQuiz.id,
+        title: state.quizAttempt.currentQuiz.title,
+        description: state.quizAttempt.currentQuiz.description,
+        questions: state.quizAttempt.currentQuiz.questions || []
+      };
+    }
+    
+    return result;
   }
 );
 

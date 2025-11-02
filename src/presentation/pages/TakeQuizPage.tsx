@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { QuizTimer, AntiCheatSummary } from '../components';
+import { QuizTimer, AntiCheatSummary, QuestionResultsReview } from '../components';
 import { useAntiCheatTracking } from '../hooks';
 import {
   startQuizAttempt,
@@ -551,6 +551,8 @@ export const TakeQuizPage: React.FC = () => {
               <strong>{result.quiz.title}</strong>
             </DetailRow>
           </ResultDetails>
+          
+          <QuestionResultsReview result={result} userAnswers={answers} />
           
           <AntiCheatSummary summary={antiCheatSummary} />
           
