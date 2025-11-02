@@ -103,3 +103,27 @@ export interface SubmitAnswerRequest {
 export interface CompleteAttemptRequest {
   attemptId: number;
 }
+
+// Anti-cheat event types
+export type AntiCheatEventType = 'focus_lost' | 'focus_gained' | 'paste_detected';
+
+export interface AntiCheatEvent {
+  attemptId: number;
+  eventType: AntiCheatEventType;
+  timestamp: string;
+  metadata?: Record<string, any>;
+}
+
+export interface RecordEventRequest {
+  attemptId: number;
+  event: AntiCheatEventType;
+  timestamp?: string;
+  metadata?: Record<string, any>;
+}
+
+export interface AntiCheatSummary {
+  totalEvents: number;
+  focusLostCount: number;
+  pasteCount: number;
+  events: AntiCheatEvent[];
+}

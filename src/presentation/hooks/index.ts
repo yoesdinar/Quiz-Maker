@@ -1,2 +1,1 @@
-// Placeholder for hook exports
-export {};
+export { default as useAntiCheatTracking } from './useAntiCheatTracking';

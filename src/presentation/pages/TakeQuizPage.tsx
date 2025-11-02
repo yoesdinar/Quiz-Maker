@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { QuizTimer } from '../components';
+import { QuizTimer, AntiCheatSummary } from '../components';
+import { useAntiCheatTracking } from '../hooks';
 import {
   startQuizAttempt,
   submitAnswer,
@@ -28,6 +29,7 @@ import {
   selectCanNavigatePrevious,
   selectCanComplete,
   selectHasTimeLimit,
+  selectAntiCheatSummary,
 } from '../../store/slices/quizAttemptSlice';
 import { Answer } from '../../shared/types/api';
 
@@ -382,6 +384,10 @@ export const TakeQuizPage: React.FC = () => {
   const canNavigatePrevious = useAppSelector(selectCanNavigatePrevious);
   const canComplete = useAppSelector(selectCanComplete);
   const hasTimeLimit = useAppSelector(selectHasTimeLimit);
+  const antiCheatSummary = useAppSelector(selectAntiCheatSummary);
+
+  // Anti-cheat tracking
+  const { trackPasteEvent } = useAntiCheatTracking();
 
   // Local state
   const [currentAnswer, setCurrentAnswer] = useState<string>('');
@@ -546,6 +552,8 @@ export const TakeQuizPage: React.FC = () => {
             </DetailRow>
           </ResultDetails>
           
+          <AntiCheatSummary summary={antiCheatSummary} />
+          
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
             <Button onClick={handleRestartQuiz}>
               Retake Quiz
@@ -610,6 +618,10 @@ export const TakeQuizPage: React.FC = () => {
               <TextInput
                 value={currentAnswer}
                 onChange={(e) => handleAnswerChange(e.target.value)}
+                onPaste={(e) => {
+                  const pastedText = e.clipboardData.getData('text');
+                  trackPasteEvent('short_answer', pastedText);
+                }}
                 placeholder="Type your answer here..."
               />
             )}

@@ -5,7 +5,8 @@ import {
   Quiz,
   CreateAttemptRequest,
   SubmitAnswerRequest,
-  CompleteAttemptRequest
+  CompleteAttemptRequest,
+  RecordEventRequest
 } from '../../shared/types/api';
 import { axiosClient } from '../config/axiosClient';
 
@@ -154,5 +155,14 @@ export class AttemptRepository implements IAttemptRepository {
 
   async getAttemptResult(_attemptId: number): Promise<AttemptResult> {
     throw new Error('Get attempt result not implemented');
+  }
+
+  async recordEvent(request: RecordEventRequest): Promise<void> {
+    // Backend expects POST /attempts/:id/events
+    await axiosClient.post(`/attempts/${request.attemptId}/events`, {
+      event: request.event,
+      timestamp: request.timestamp || new Date().toISOString(),
+      metadata: request.metadata || {},
+    });
   }
 }

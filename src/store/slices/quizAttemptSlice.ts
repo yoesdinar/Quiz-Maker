@@ -7,7 +7,9 @@ import {
   Answer,
   CreateAttemptRequest,
   SubmitAnswerRequest,
-  CompleteAttemptRequest
+  CompleteAttemptRequest,
+  AntiCheatEvent,
+  RecordEventRequest
 } from '../../shared/types/api';
 
 // Async thunks
@@ -43,6 +45,13 @@ export const loadQuizForTaking = createAsyncThunk(
   }
 );
 
+export const recordAntiCheatEvent = createAsyncThunk(
+  'quizAttempt/recordEvent',
+  async (request: RecordEventRequest) => {
+    return await attemptRepository.recordEvent(request);
+  }
+);
+
 // State interface
 interface QuizAttemptState {
   // Current attempt
@@ -58,6 +67,11 @@ interface QuizAttemptState {
   // Timer
   timeRemainingSeconds: number | null; // null means no time limit
   timerActive: boolean;
+  
+  // Anti-cheat tracking
+  antiCheatEvents: AntiCheatEvent[];
+  focusLostCount: number;
+  pasteCount: number;
   
   // Result
   result: AttemptResult | null;
@@ -79,6 +93,9 @@ const initialState: QuizAttemptState = {
   answers: {},
   timeRemainingSeconds: null,
   timerActive: false,
+  antiCheatEvents: [],
+  focusLostCount: 0,
+  pasteCount: 0,
   result: null,
   isLoading: false,
   isSubmitting: false,
@@ -139,6 +156,18 @@ const quizAttemptSlice = createSlice({
     stopTimer: (state) => {
       state.timerActive = false;
       state.timeRemainingSeconds = null;
+    },
+    
+    // Anti-cheat event tracking
+    addAntiCheatEvent: (state, action: PayloadAction<AntiCheatEvent>) => {
+      state.antiCheatEvents.push(action.payload);
+      
+      // Update counters based on event type
+      if (action.payload.eventType === 'focus_lost') {
+        state.focusLostCount += 1;
+      } else if (action.payload.eventType === 'paste_detected') {
+        state.pasteCount += 1;
+      }
     },
     
     // Reset state
@@ -231,6 +260,16 @@ const quizAttemptSlice = createSlice({
         state.error = action.error.message || 'Failed to complete quiz';
         // Stop timer on error
         state.timerActive = false;
+      })
+      
+      // Record anti-cheat event
+      .addCase(recordAntiCheatEvent.fulfilled, (_state, _action) => {
+        // Event successfully recorded to backend
+        // The local state is already updated via addAntiCheatEvent action
+      })
+      .addCase(recordAntiCheatEvent.rejected, (_state, action) => {
+        // Failed to record to backend, but keep local tracking
+        console.warn('Failed to record anti-cheat event to backend:', action.error.message);
       });
   },
 });
@@ -244,6 +283,7 @@ export const {
   tickTimer,
   pauseTimer,
   stopTimer,
+  addAntiCheatEvent,
   resetAttempt,
   clearError,
 } = quizAttemptSlice.actions;
@@ -272,6 +312,17 @@ export const selectError = (state: { quizAttempt: QuizAttemptState }) => state.q
 export const selectTimeRemainingSeconds = (state: { quizAttempt: QuizAttemptState }) => state.quizAttempt.timeRemainingSeconds;
 export const selectTimerActive = (state: { quizAttempt: QuizAttemptState }) => state.quizAttempt.timerActive;
 export const selectHasTimeLimit = (state: { quizAttempt: QuizAttemptState }) => state.quizAttempt.timeRemainingSeconds !== null;
+
+// Anti-cheat selectors
+export const selectAntiCheatEvents = (state: { quizAttempt: QuizAttemptState }) => state.quizAttempt.antiCheatEvents;
+export const selectFocusLostCount = (state: { quizAttempt: QuizAttemptState }) => state.quizAttempt.focusLostCount;
+export const selectPasteCount = (state: { quizAttempt: QuizAttemptState }) => state.quizAttempt.pasteCount;
+export const selectAntiCheatSummary = (state: { quizAttempt: QuizAttemptState }) => ({
+  totalEvents: state.quizAttempt.antiCheatEvents.length,
+  focusLostCount: state.quizAttempt.focusLostCount,
+  pasteCount: state.quizAttempt.pasteCount,
+  events: state.quizAttempt.antiCheatEvents,
+});
 
 // Progress selectors
 export const selectProgress = (state: { quizAttempt: QuizAttemptState }) => {
